@@ -1,29 +1,83 @@
 import java.io.*;
 import java.net.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class TCPCliente {
 
+    private static JTextField mensajeCliente;
+    private static JTextArea mostrarMensaje;
+    private static DataOutputStream outToServer;
+    private static BufferedReader inFromServer;
+
     public static void main(String argv[]) throws Exception {
-        String sentence;
-        String modifiedSentence;
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+        // configuración de la ventana
+        JFrame ventana = new JFrame("Cliente - Chat con Servidor");
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        ventana.setSize(400, 300); // tamaño ventana
+        ventana.setLocationRelativeTo(null); // centrar ventana
+        ventana.setVisible(true); // hacerla visible
 
-        Socket clientSocket = new Socket("hostname", 6789);
+        // confurguración del chat
+        mostrarMensaje = new JTextArea();
+        mostrarMensaje.setEditable(false);
+        ventana.add(new JScrollPane(mostrarMensaje), BorderLayout.CENTER);
 
-        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        // configuración del mensaje de cliente
+        mensajeCliente = new JTextField();
+        JButton enviarmensaje = new JButton("Enviar");
 
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(mensajeCliente, BorderLayout.CENTER);
+        panel.add(enviarmensaje, BorderLayout.EAST);
+        ventana.add(panel, BorderLayout.SOUTH);
 
-        sentence = inFromUser.readLine();
+        enviarmensaje.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    enviarMensaje();
+                } catch (IOException ex) {
+                    mostrarMensaje.append("Se ha producido un error al enviar el mensaje: " + ex.getMessage() + "\n");
+                }
+            }
+        });
 
-        outToServer.writeBytes(sentence + '\n');
+        ventana.setVisible(true);
 
-        modifiedSentence = inFromServer.readLine();
+        // configuración del socket
+        try {
 
-        System.out.println("FROM SERVER: " + modifiedSentence);
+            // creando el socket
+            Socket Socketcliente = new Socket("hostname", 6789);
+            outToServer = new DataOutputStream(Socketcliente.getOutputStream());
+            inFromServer = new BufferedReader(new InputStreamReader(Socketcliente.getInputStream()));
 
-        clientSocket.close();
+            while (true) {
+                String respuesta = inFromServer.readLine();
+                if (respuesta != null) {
+                    mostrarMensaje.append("Servidor: " + respuesta + "\n");
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            mostrarMensaje.append("Error al conectar con el servidor: " + ex.getMessage() + "\n");
+        }
 
+    }
+
+    // Método para enviar el mensaje al servidor y limpiar el campo de texto
+    private static void enviarMensaje() throws IOException {
+        try {
+            String mensaje = mensajeCliente.getText();
+            outToServer.writeBytes(mensaje + '\n');
+            mensajeCliente.setText(""); // aquí limpia
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            mostrarMensaje.append("Error al enviar el mensaje: " + ex.getMessage() + "\n");
+        }
     }
 }
