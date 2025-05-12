@@ -1,0 +1,1 @@
+El primer cambio que se ha hecho al código es el implementarle una interfaz gráfica sencilla al cliente.

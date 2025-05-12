@@ -52,7 +52,7 @@ public class TCPCliente {
         try {
 
             // creando el socket
-            Socket Socketcliente = new Socket("hostname", 6789);
+            Socket Socketcliente = new Socket("localhost", 6789);
             outToServer = new DataOutputStream(Socketcliente.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(Socketcliente.getInputStream()));
 
