@@ -1,26 +1,60 @@
 import java.io.*;
 import java.net.*;
 
+import javax.xml.crypto.Data;
+
 class TCPServer {
     public static void main(String argv[]) throws Exception {
-        String clientSentence;
-        String capitalizedSentence;
-        
-        ServerSocket welcomeSocket = new ServerSocket(6789);
 
-        while (true) {
+        final int numeroPuerto = 6789;
+        System.out.println("Se iniciializa el servidor en el puerto " + numeroPuerto);
 
-            Socket connectionSocket = welcomeSocket.accept();
+        try (ServerSocket servidorSocket = new ServerSocket(numeroPuerto)) {
+            while (true) {
+                Socket clienteSocket = servidorSocket.accept();
+                System.out.println(
+                        "Cliente conectado desde " + clienteSocket.getInetAddress() + ":" + clienteSocket.getPort());
 
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-
-            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-
-            clientSentence = inFromClient.readLine();
-
-            capitalizedSentence = clientSentence.toUpperCase() + '\n';
-            
-            outToClient.writeBytes(capitalizedSentence);
+                new ClienteHandler(clienteSocket).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+}
+
+// Clase de hilos para clientes
+class ClienteHandler extends Thread {
+
+    private Socket clienteSocket;
+
+    public ClienteHandler(Socket socket) {
+        this.clienteSocket = socket;
+    }
+
+    @Override
+    public void run() {
+
+        try (
+                BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clienteSocket.getInputStream()));
+                DataOutputStream outToClient = new DataOutputStream(clienteSocket.getOutputStream())
+
+        ) {
+            String mensajeCliente;
+            while ((mensajeCliente = inFromClient.readLine()) != null) {
+
+                String respuesta = mensajeCliente.toUpperCase() + '\n';
+                outToClient.writeBytes(respuesta);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                clienteSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
