@@ -56,15 +56,24 @@ public class TCPCliente {
             outToServer = new DataOutputStream(Socketcliente.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(Socketcliente.getInputStream()));
 
-            while (true) {
-                String respuesta = inFromServer.readLine();
-                if (respuesta != null) {
-                    mostrarMensaje.append("Servidor: " + respuesta + "\n");
+            // creando el hilo para recibir mensajes del servidor
+            Thread hiloRecibir = new Thread(() -> {
+
+                try {
+                    while (true) {
+                        String respuesta = inFromServer.readLine();
+                        if (respuesta != null) {
+                            mostrarMensaje.append("Servidor: " + respuesta + "\n");
+                        }
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    mostrarMensaje.append("Error al conectar con el servidor: " + ex.getMessage() + "\n");
                 }
-            }
+            });
+            hiloRecibir.start(); // iniciar el hilo para recibir mensajes
         } catch (IOException ex) {
             ex.printStackTrace();
-            mostrarMensaje.append("Error al conectar con el servidor: " + ex.getMessage() + "\n");
         }
 
     }
