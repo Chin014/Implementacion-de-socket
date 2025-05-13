@@ -15,7 +15,7 @@ public class TCPCliente {
     public static void main(String argv[]) throws Exception {
 
         // configuración de la ventana
-        JFrame ventana = new JFrame("Cliente - Chat con Servidor");
+        JFrame ventana = new JFrame("Chat Grupal");
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         ventana.setSize(400, 300); // tamaño ventana
         ventana.setLocationRelativeTo(null); // centrar ventana
@@ -63,7 +63,7 @@ public class TCPCliente {
                     while (true) {
                         String respuesta = inFromServer.readLine();
                         if (respuesta != null) {
-                            mostrarMensaje.append("Servidor: " + respuesta + "\n");
+                            mostrarMensaje.append(respuesta + "\n");
                         }
                     }
                 } catch (IOException ex) {

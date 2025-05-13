@@ -6,6 +6,7 @@ import java.util.List;
 class TCPServer {
 
     private static List<DataOutputStream> clientes = new ArrayList<>();
+    private static List<String> nombresClientes = new ArrayList<>();
 
     public static void main(String argv[]) throws Exception {
 
@@ -22,6 +23,11 @@ class TCPServer {
 
                 DataOutputStream outToClient = new DataOutputStream(clienteSocket.getOutputStream());
                 clientes.add(outToClient);
+                nombresClientes.add(nombreCliente);
+
+                // se envia la lista de los clientes conectados al servidor
+                enviarListaClientesATodos();
+
                 new ClienteChatHandler(clienteSocket, nombreCliente).start();
             }
         } catch (IOException e) {
@@ -72,6 +78,18 @@ class TCPServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    private static void enviarListaClientesATodos() {
+        String listaClientes = "Usuarios conectados: " + String.join(", ", nombresClientes + "\n");
+        for (DataOutputStream cliente : clientes) {
+            try {
+
+                cliente.writeBytes(listaClientes);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
