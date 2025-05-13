@@ -1,9 +1,12 @@
 import java.io.*;
 import java.net.*;
-
-import javax.xml.crypto.Data;
+import java.util.ArrayList;
+import java.util.List;
 
 class TCPServer {
+
+    private static List<DataOutputStream> clientes = new ArrayList<>();
+
     public static void main(String argv[]) throws Exception {
 
         final int numeroPuerto = 6789;
@@ -12,49 +15,64 @@ class TCPServer {
         try (ServerSocket servidorSocket = new ServerSocket(numeroPuerto)) {
             while (true) {
                 Socket clienteSocket = servidorSocket.accept();
+                String nombreCliente = clienteSocket.getInetAddress().getHostName(); // para obtener el nombre del
+                                                                                     // cliente
                 System.out.println(
-                        "Cliente conectado desde " + clienteSocket.getInetAddress() + ":" + clienteSocket.getPort());
+                        "Nuevo cliente conectado " + nombreCliente);
 
-                new ClienteHandler(clienteSocket).start();
+                DataOutputStream outToClient = new DataOutputStream(clienteSocket.getOutputStream());
+                clientes.add(outToClient);
+                new ClienteChatHandler(clienteSocket, nombreCliente).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-}
 
-// Clase de hilos para clientes
-class ClienteHandler extends Thread {
+    // Clase de hilos para clientes
+    static class ClienteChatHandler extends Thread {
 
-    private Socket clienteSocket;
+        private Socket clienteSocket;
+        private String nombreCliente;
 
-    public ClienteHandler(Socket socket) {
-        this.clienteSocket = socket;
-    }
+        public ClienteChatHandler(Socket socket, String nombreCliente) {
+            this.clienteSocket = socket;
+            this.nombreCliente = nombreCliente;
+        }
 
-    @Override
-    public void run() {
+        @Override
+        public void run() {
 
-        try (
-                BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clienteSocket.getInputStream()));
-                DataOutputStream outToClient = new DataOutputStream(clienteSocket.getOutputStream())
+            try (
+                    BufferedReader inFromClient = new BufferedReader(
+                            new InputStreamReader(clienteSocket.getInputStream()))
 
-        ) {
-            String mensajeCliente;
-            while ((mensajeCliente = inFromClient.readLine()) != null) {
+            ) {
+                String mensajeCliente;
+                while ((mensajeCliente = inFromClient.readLine()) != null) {
 
-                String respuesta = mensajeCliente.toUpperCase() + '\n';
-                outToClient.writeBytes(respuesta);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                clienteSocket.close();
+                    enviarMensajeATods(nombreCliente + ": " + mensajeCliente);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    clienteSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+
         }
 
+        private void enviarMensajeATods(String mensaje) {
+            for (DataOutputStream cliente : clientes) {
+                try {
+                    cliente.writeBytes(mensaje + '\n');
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
