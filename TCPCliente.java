@@ -11,6 +11,7 @@ public class TCPCliente {
     private static JTextArea mostrarMensaje;
     private static DataOutputStream outToServer;
     private static BufferedReader inFromServer;
+    private static JTextArea mostrarClientesConectados;
 
     public static void main(String argv[]) throws Exception {
 
@@ -29,6 +30,12 @@ public class TCPCliente {
         // configuración del mensaje de cliente
         mensajeCliente = new JTextField();
         JButton enviarmensaje = new JButton("Enviar");
+
+        // configuración de la lista de clientes conectados
+        mostrarClientesConectados = new JTextArea();
+        mostrarClientesConectados.setEditable(false);
+        mostrarClientesConectados.setText("Usuarios conectados:\n");
+        ventana.add(new JScrollPane(mostrarClientesConectados), BorderLayout.EAST);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(mensajeCliente, BorderLayout.CENTER);
@@ -63,7 +70,13 @@ public class TCPCliente {
                     while (true) {
                         String respuesta = inFromServer.readLine();
                         if (respuesta != null) {
-                            mostrarMensaje.append(respuesta + "\n");
+                            if (respuesta.startsWith("Usuarios conectados:")) {
+                                mostrarClientesConectados.setText(respuesta.replace(", ", "\n"));// se muestran la lista
+                                                                                                 // de conectados
+                            } else {
+
+                                mostrarMensaje.append(respuesta + "\n"); // se muestra el mensaje
+                            }
                         }
                     }
                 } catch (IOException ex) {

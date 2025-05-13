@@ -2,3 +2,4 @@ El primer cambio que se ha hecho al código es el implementarle una interfaz gr�
 Segundo cambio es implementarle hilos al servidor.
 Tercer cambio fue implementarle hilos también al cliente.
 Cuarto cambio ha sido el cambiar el servidor (antes reenviaba al cliente su mensaje pero en letras mayusculas) a un tipo de chat grupal.
+Quinto cambio fue el crear un apartado para mostrar a los clientes conectados.
